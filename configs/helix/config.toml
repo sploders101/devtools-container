@@ -1,0 +1,40 @@
+theme = "onedark-skeys"
+
+[editor]
+scrolloff = 1
+scroll-lines = 1
+shell = ["bash", "-c"]
+auto-format = false
+# idle-timeout = 1000
+color-modes = true
+bufferline = "always"
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "block"
+select = "underline"
+
+[editor.lsp]
+auto-signature-help = false
+display-signature-help-docs = false
+snippets = false
+
+[editor.explorer]
+column-width = 30
+
+[editor.file-picker]
+hidden = false
+
+[editor.indent-guides]
+render = true
+character = "▏"
+
+[keys.normal]
+"A-]" = [":bc"]
+"ret" = [":w"]
+"minus" = ["goto_previous_buffer"]
+"=" = ["goto_next_buffer"]
+"C-f" = [":format"]
+
+[keys.insert]
+"A-p" = ["signature_help"]
