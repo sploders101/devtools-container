@@ -1,0 +1,90 @@
+[language-server]
+emmet-ls = { args = ["--stdio"], command = "emmet-language-server" }
+bufls = { command = "buf", args = ["beta", "lsp"] }
+
+[language-server.rust-analyzer.config]
+cargo.allTargets = false
+
+[[language]]
+name = "c"
+indent = { tab-width = 4, unit = "    " }
+
+[[language]]
+name = "python"
+language-servers = [ "pyright", "ruff" ]
+
+[[language]]
+name = "vue"
+indent = { tab-width = 4, unit = "\t" }
+formatter = { command = "prettier", args = ["--parser", "vue"] }
+language-servers = [
+  "typescript-language-server",
+  "vscode-eslint-language-server",
+  "emmet-ls",
+]
+
+[[language-server.vuels.config]]
+vue.hybridMode = false
+
+[[language-server.typescript-language-server.config.plugins]]
+name = "@vue/typescript-plugin"
+location = "/home/dev/.local/node_modules/@vue/language-server"
+languages = ["vue"]
+
+[[language]]
+name = "svelte"
+indent = { tab-width = 4, unit = "    " }
+formatter = { command = "prettier", args = ["--parser", "svelte"] }
+language-servers = [
+  "svelteserver",
+]
+
+[[language]]
+name = "javascript"
+indent = { tab-width = 4, unit = "\t" }
+formatter = { command = "prettier", args = ['--parser', 'babel'] }
+language-servers = [
+  "typescript-language-server",
+  "vscode-eslint-language-server"
+]
+
+[[language]]
+name = "typescript"
+indent = { tab-width = 4, unit = "\t" }
+formatter = { command = "prettier", args = ['--parser', 'typescript'] }
+language-servers = [
+  "typescript-language-server",
+  "vscode-eslint-language-server"
+]
+
+[[language]]
+name = "scss"
+indent = { tab-width = 4, unit = "\t" }
+formatter = { command = "prettier", args = ['--parser', 'sass'] }
+language-servers = [
+  "vscode-css-language-server",
+  "vscode-eslint-language-server"
+]
+
+[[language]]
+name = "css"
+indent = { tab-width = 4, unit = "\t" }
+formatter = { command = "prettier", args = ['--parser', 'css'] }
+language-servers = [
+  "vscode-css-language-server",
+  "vscode-eslint-language-server"
+]
+
+[[language]]
+name = "html"
+indent = { tab-width = 4, unit = "\t" }
+formatter = { command = "prettier", args = ['--parser', 'html'] }
+language-servers = ["vscode-html-language-server", "emmet-ls"]
+
+[[language]]
+name = "json"
+indent = { tab-width = 4, unit = "\t" }
+
+[[language]]
+name = "bash"
+indent = { tab-width = 4, unit = "\t" }

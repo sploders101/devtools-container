@@ -1,6 +1,6 @@
 FROM debian:bookworm AS base
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y \
   build-essential \
   curl \
   git \
@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install -y \
   npm \
   binaryen \
   python3 \
+	python3-pip \
+	protobuf-compiler \
   && rm -rf /var/lib/apt/lists/*
 
 RUN useradd -ms /bin/bash dev
@@ -33,10 +35,15 @@ WORKDIR /home/dev
 RUN cargo install --locked -- gitui
 RUN git clone --branch personal https://github.com/sploders101/helix-editor.git
 RUN cd helix-editor && cargo install --path helix-term --locked
+RUN rm -rf runtime/grammars/sources
 RUN git clone --branch personal https://github.com/sploders101/zellij
 RUN cd zellij && cargo make install /home/dev/.cargo/bin/zellij
-RUN cargo install --git https://github.com/rhaiscript/rhai-lsp.git rhai-cli
-RUN cargo install --git https://github.com/astral-sh/ruff.git --tag 0.11.8 ruff
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/ruff:latest /ruff /bin/
+COPY --from=golang:bookworm /usr/local/go /usr/local/go
+ENV PATH="/usr/local/go/bin:${PATH}"
+RUN go install golang.org/x/tools/gopls@latest
+RUN go install github.com/bufbuild/buf/cmd/buf@v1.55.1
 
 
 FROM base
@@ -48,16 +55,19 @@ USER dev:dev
 ENV SHELL=/bin/bash
 WORKDIR /app
 
-COPY --from=tools-builder /home/dev/.cargo/bin/hx /home/dev/.cargo/bin/hx
-COPY --from=tools-builder /home/dev/.cargo/bin/zellij /home/dev/.cargo/bin/zellij
-COPY --from=tools-builder /home/dev/.cargo/bin/cargo-make /home/dev/.cargo/bin/cargo-make
-COPY --from=tools-builder /home/dev/.cargo/bin/mandown /home/dev/.cargo/bin/mandown
-COPY --from=tools-builder /home/dev/.cargo/bin/gitui /home/dev/.cargo/bin/gitui
-COPY --from=tools-builder /home/dev/.cargo/bin/rhai /home/dev/.cargo/bin/rhai
-COPY --from=tools-builder /home/dev/.cargo/bin/ruff /home/dev/.cargo/bin/ruff
-COPY --from=tools-builder /home/dev/helix-editor/runtime /home/dev/.config/helix/runtime
-COPY configs/helix/config.toml /home/dev/.config/helix/config.toml
+ENV PATH="/usr/local/go/bin:/home/dev/go/bin:${PATH}"
 
+# Copy bin directories
+COPY --chown=dev:dev --from=tools-builder /home/dev/.cargo/bin /home/dev/.cargo/bin
+COPY --chown=dev:dev --from=tools-builder /home/dev/go/bin /home/dev/go/bin
+COPY --chown=dev:dev --from=golang:bookworm /usr/local/go /usr/local/go
+
+# Copy Helix configs
+COPY --chown=dev:dev --from=tools-builder /home/dev/helix-editor/runtime /home/dev/.config/helix/runtime
+COPY --chown=dev:dev configs/helix/config.toml /home/dev/.config/helix/config.toml
+COPY --chown=dev:dev configs/helix/languages.toml /home/dev/.config/helix/languages.toml
+
+# Install JS-based language servers
 RUN npm i --global pyright vscode-langservers-extracted typescript typescript-language-server \
 	@vue/language-server yaml-language-server@next svelte-language-server \
 	dockerfile-language-server-nodejs @microsoft/compose-language-service bash-language-server \
