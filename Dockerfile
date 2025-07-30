@@ -62,10 +62,16 @@ COPY --chown=dev:dev --from=tools-builder /home/dev/.cargo/bin /home/dev/.cargo/
 COPY --chown=dev:dev --from=tools-builder /home/dev/go/bin /home/dev/go/bin
 COPY --chown=dev:dev --from=golang:bookworm /usr/local/go /usr/local/go
 
+# Install rust-analyzer
+RUN rustup component add rust-analyzer
+
 # Copy Helix configs
 COPY --chown=dev:dev --from=tools-builder /home/dev/helix-editor/runtime /home/dev/.config/helix/runtime
 COPY --chown=dev:dev configs/helix/config.toml /home/dev/.config/helix/config.toml
 COPY --chown=dev:dev configs/helix/languages.toml /home/dev/.config/helix/languages.toml
+
+# Copy zellij config
+COPY --chown=dev:dev configs/zellij/config.kdl /home/dev/.config/zellij/config.kdl
 
 # Install JS-based language servers
 RUN npm i --global pyright vscode-langservers-extracted typescript typescript-language-server \
