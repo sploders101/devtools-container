@@ -1,20 +1,27 @@
-FROM debian:bookworm AS base
+FROM alpine:latest AS base
 
-RUN apt-get update && apt-get upgrade -y && apt-get install -y \
-  build-essential \
-  curl \
-  git \
-  wget \
-  desktop-file-utils \
-  nodejs \
-  npm \
-  binaryen \
-  python3 \
-	python3-pip \
-	protobuf-compiler \
-  && rm -rf /var/lib/apt/lists/*
+RUN apk update && apk upgrade \
+  && apk add --no-cache \
+    build-base \
+    sudo \
+    iproute2 \
+    procps \
+    iputils \
+    netcat-openbsd \
+    curl \
+    git \
+    wget \
+    desktop-file-utils \
+    bash \
+    perl \
+    nodejs \
+    npm \
+    binaryen \
+    python3 \
+    py3-pip \
+    protobuf-c
 
-RUN useradd -ms /bin/bash dev
+RUN adduser -D -h /home/dev -s /bin/sh dev
 USER dev:dev
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y
@@ -29,7 +36,7 @@ FROM base AS tools-builder
 RUN cargo install cargo-make
 RUN cargo install mandown
 USER root:root
-RUN apt-get update && apt-get install -y cmake
+RUN apk add --no-cache cmake
 USER dev:dev
 WORKDIR /home/dev
 RUN cargo install --locked -- gitui
@@ -39,7 +46,7 @@ RUN cd helix-editor && cargo install --path helix-term --locked
 RUN rm -rf runtime/grammars/sources
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 COPY --from=ghcr.io/astral-sh/ruff:latest /ruff /bin/
-COPY --from=golang:bookworm /usr/local/go /usr/local/go
+COPY --from=golang:alpine /usr/local/go /usr/local/go
 ENV PATH="/usr/local/go/bin:${PATH}"
 RUN go install golang.org/x/tools/gopls@latest
 RUN go install github.com/bufbuild/buf/cmd/buf@v1.55.1
@@ -48,6 +55,8 @@ RUN go install github.com/bufbuild/buf/cmd/buf@v1.55.1
 FROM base
 
 USER root:root
+RUN echo 'dev ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+RUN apk add --no-cache ncurses
 RUN curl -sSL https://raw.githubusercontent.com/alacritty/alacritty/master/extra/alacritty.info | tic -x -
 RUN mkdir /app
 USER dev:dev
@@ -59,7 +68,7 @@ ENV PATH="/usr/local/go/bin:/home/dev/go/bin:${PATH}"
 # Copy bin directories
 COPY --chown=dev:dev --from=tools-builder /home/dev/.cargo/bin /home/dev/.cargo/bin
 COPY --chown=dev:dev --from=tools-builder /home/dev/go/bin /home/dev/go/bin
-COPY --chown=dev:dev --from=golang:bookworm /usr/local/go /usr/local/go
+COPY --chown=dev:dev --from=golang:alpine /usr/local/go /usr/local/go
 
 # Install rust-analyzer
 RUN rustup component add rust-analyzer
@@ -74,9 +83,9 @@ COPY --chown=dev:dev configs/zellij/config.kdl /home/dev/.config/zellij/config.k
 
 # Install JS-based language servers
 RUN npm i --global pyright vscode-langservers-extracted typescript typescript-language-server \
-	@vue/language-server yaml-language-server@next svelte-language-server \
-	dockerfile-language-server-nodejs @microsoft/compose-language-service bash-language-server \
-	@ansible/ansible-language-server perlnavigator-server intelephense awk-language-server \
+  @vue/language-server yaml-language-server@next svelte-language-server \
+  dockerfile-language-server-nodejs @microsoft/compose-language-service bash-language-server \
+  @ansible/ansible-language-server perlnavigator-server intelephense awk-language-server \
   emmet-ls
 
 # Install opencode
