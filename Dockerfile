@@ -90,3 +90,4 @@ RUN npm i --global pyright vscode-langservers-extracted typescript typescript-la
 
 # Install opencode
 RUN curl -fsSL https://opencode.ai/install | bash
+ENV PATH="/home/dev/.opencode/bin:${PATH}"
