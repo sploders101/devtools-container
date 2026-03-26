@@ -33,11 +33,10 @@ RUN apt-get update && apt-get install -y cmake
 USER dev:dev
 WORKDIR /home/dev
 RUN cargo install --locked -- gitui
+RUN cargo install --locked -- zellij
 RUN git clone --branch personal https://github.com/sploders101/helix-editor.git
 RUN cd helix-editor && cargo install --path helix-term --locked
 RUN rm -rf runtime/grammars/sources
-RUN git clone --branch personal https://github.com/sploders101/zellij
-RUN cd zellij && cargo make install /home/dev/.cargo/bin/zellij
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 COPY --from=ghcr.io/astral-sh/ruff:latest /ruff /bin/
 COPY --from=golang:bookworm /usr/local/go /usr/local/go
@@ -79,3 +78,6 @@ RUN npm i --global pyright vscode-langservers-extracted typescript typescript-la
 	dockerfile-language-server-nodejs @microsoft/compose-language-service bash-language-server \
 	@ansible/ansible-language-server perlnavigator-server intelephense awk-language-server \
   emmet-ls
+
+# Install opencode
+RUN curl -fsSL https://opencode.ai/install | bash
