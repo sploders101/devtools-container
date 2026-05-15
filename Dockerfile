@@ -49,14 +49,18 @@ COPY --from=ghcr.io/astral-sh/ruff:latest /ruff /bin/
 COPY --from=golang:alpine /usr/local/go /usr/local/go
 ENV PATH="/usr/local/go/bin:${PATH}"
 RUN go install golang.org/x/tools/gopls@latest
-RUN go install github.com/bufbuild/buf/cmd/buf@v1.55.1
+RUN go install github.com/bufbuild/buf/cmd/buf@latest
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+RUN go install github.com/twitchtv/twirp/protoc-gen-twirp@latest
+RUN go install connectrpc.com/connect/cmd/protoc-gen-connect-go@latest
 
 
 FROM base
 
 USER root:root
 RUN echo 'dev ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-RUN apk add --no-cache ncurses
+RUN apk add --no-cache ncurses ripgrep openssh-client
 RUN curl -sSL https://raw.githubusercontent.com/alacritty/alacritty/master/extra/alacritty.info | tic -x -
 RUN mkdir /app
 USER dev:dev
@@ -81,13 +85,15 @@ COPY --chown=dev:dev configs/helix/languages.toml /home/dev/.config/helix/langua
 # Copy zellij config
 COPY --chown=dev:dev configs/zellij/config.kdl /home/dev/.config/zellij/config.kdl
 
-# Install JS-based language servers
+# Install devtools from npm
 RUN npm i --global pyright vscode-langservers-extracted typescript typescript-language-server \
   @vue/language-server yaml-language-server@next svelte-language-server \
   dockerfile-language-server-nodejs @microsoft/compose-language-service bash-language-server \
   @ansible/ansible-language-server perlnavigator-server intelephense awk-language-server \
-  emmet-ls
+  emmet-ls @bufbuild/protoc-gen-es prettier
 
 # Install opencode
 RUN curl -fsSL https://opencode.ai/install | bash
 ENV PATH="/home/dev/.opencode/bin:${PATH}"
+
+ENV PS1='\h:\W\$ '
