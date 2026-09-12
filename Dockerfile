@@ -54,6 +54,9 @@ RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 RUN go install github.com/twitchtv/twirp/protoc-gen-twirp@latest
 RUN go install connectrpc.com/connect/cmd/protoc-gen-connect-go@latest
+RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+RUN go install github.com/go-task/task/v3/cmd/task@latest
+RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 
 
 FROM base
